@@ -9,4 +9,6 @@ dependencies = [
     "langchain[google-genai]>=1.2.3",
     "langgraph>=1.0.5",
     "pydantic>=2.12.5",
+    "python-dotenv[cli]>=1.2.1",
+    "uvicorn>=0.40.0",
 ]

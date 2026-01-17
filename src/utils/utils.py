@@ -34,6 +34,8 @@ def load_chat_prompt_template(
         raise ValueError(f"Prompt template {target_prompt} not found in the prompt file at {file_path}")
 
     return ChatPromptTemplate.from_messages(
-        ("system", prompts[target_prompt]["system_prompt"]),
-        ("user", prompts[target_prompt]["user_prompt"]),
+        [
+            ("system", prompts[target_prompt]["system_prompt"]),
+            ("human", prompts[target_prompt]["user_prompt"]),
+        ]
     )

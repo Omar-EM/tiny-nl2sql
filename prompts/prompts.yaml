@@ -80,9 +80,6 @@ sql_generator:
     Your task is to generate a SQL query in PostgreSQL dialect based on the user's question and the following database schema:
     {schema_context}
 
-    Here are some example SQL queries for reference:
-    {sql_examples}
-
     Session History (if available, for context on follow-up questions):
     {chat_history}
 

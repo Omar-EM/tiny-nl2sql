@@ -1,12 +1,13 @@
+import random
 from typing import Literal
-from .state import State
-from ..utils.utils import load_chat_prompt_template
-from random import random
 
 from langchain.chat_models import init_chat_model
 
+from ..utils.utils import load_chat_prompt_template
+from .state import State
 
-def sql_generator(state: State) -> dict:
+
+def generate_sql_node(state: State) -> dict:
     """Generates SQL query from natiral language using LLM"""
     print("[NODE] SQL Generator")
 
@@ -20,9 +21,9 @@ def sql_generator(state: State) -> dict:
     sql_generator_prompt = load_chat_prompt_template(target_prompt="sql_generator")
 
     # Call LLM
-    llm = init_chat_model("google_genai:gemini-2.5-flash-lite").with_structured_output(
-        method="json_mode"
-    )
+    llm = init_chat_model(
+        "gemini-2.5-flash", model_provider="google_genai", temperature=0
+    )  # .with_structured_output(method="json_mode")
 
     chain = sql_generator_prompt | llm
 
@@ -37,8 +38,11 @@ def sql_generator(state: State) -> dict:
 
     return response
 
-def sql_validator(state: State) -> dict:
-    """Validate if the SQL """
+
+def validate_sql_node(state: State) -> dict:
+    """Validate if the SQL"""
+
+    print("[NODE] sql_validator ...")
 
     # dummy logic
     if random.random() < 0.5:
@@ -46,26 +50,20 @@ def sql_validator(state: State) -> dict:
     else:
         is_safe = False
 
-    print("[NODE] sql_validator ...", is_safe)
+    return {"is_safe": is_safe}
 
-    return {
-        "is_safe": is_safe
-    }
 
-def sql_executor(state: State) -> dict:
+def execute_sql_node(state: State) -> dict:
     print("[NODE] execute SQL query")
 
-    return {
-        "sql_execution_status": "true",
-        "sql_execution_result": "sql result"
-    }
+    return {"sql_execution_status": "true", "sql_execution_result": "sql result"}
 
 
 #################################
 # Routing Nodes
 #################################
 
-def check_sql_validity(state: State) -> Literal["valid", "invalid"]:
-    print("[ROUTING NODE] checking sql query validity")
-    return "valid" if state.is_safe else "invlide"
 
+def check_sql_validity_node(state: State) -> Literal["valid", "invalid"]:
+    print("[ROUTING NODE] checking sql query validity")
+    return "valid" if state.is_safe else "invalide"

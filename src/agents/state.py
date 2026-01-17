@@ -8,8 +8,15 @@ class State(BaseModel):
     """State for the NL2SQL Agent"""
 
     messages: Annotated[list[BaseMessage], add_messages]
-    user_query: str | None = None
+    user_query: str
     generated_sql: str | None = None
-    is_safe: bool
-    sql_execution_status: str
-    sql_execution_result: str
+    is_safe: bool | None = None
+    sql_execution_status: str = "Initialized"   # TODO: Should be an Enum
+    sql_execution_result: str | None = None
+
+
+def get_initial_state(messages: list[BaseMessage], query: str) -> State:
+    return State(
+        messages=messages,
+        user_query=query,
+    )

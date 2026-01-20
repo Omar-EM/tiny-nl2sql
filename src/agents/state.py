@@ -11,6 +11,7 @@ class State(BaseModel):
     user_query: str
     generated_sql: str | None = None
     is_safe: bool | None = None
+    is_valid_syntax: bool | None = None
     sql_execution_status: str = "Initialized"   # TODO: Should be an Enum
     sql_execution_result: str | None = None
 

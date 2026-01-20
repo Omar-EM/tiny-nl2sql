@@ -1,9 +1,11 @@
-import random
+import re
 from typing import Literal
 
 from langchain.chat_models import init_chat_model
+from langchain_core.messages import AIMessage
 
-from ..utils.utils import load_chat_prompt_template
+from ..utils.consts import UNSAFE_SQL_KW
+from ..utils.utils import _validate_sql_syntax, load_chat_prompt_template
 from .state import State
 
 
@@ -43,14 +45,22 @@ def validate_sql_node(state: State) -> dict:
     """Validate if the SQL"""
 
     print("[NODE] sql_validator ...")
+    unsafe_kw_found = []
+    for kw in UNSAFE_SQL_KW:
+        if re.search(rf"\b{kw}\b", state.generated_sql.upper()):
+            unsafe_kw_found.append(kw)
 
-    # dummy logic
-    if random.random() < 0.5:
-        is_safe = True
+    if unsafe_kw_found:
+        print(f"SQL contains unsafe keywords ... {unsafe_kw_found}")
+        ai_message = AIMessage(content="Agent run interrupted. Query unsafe !")
+        return {"messages": [ai_message], "is_safe": False}
     else:
-        is_safe = False
+        try:
+            is_valid_syntax = _validate_sql_syntax(state.generated_sql)
+        except Exception:
+            is_valid_syntax = False
 
-    return {"is_safe": is_safe}
+        return {"is_safe": True, "is_valid_syntax": is_valid_syntax}
 
 
 def execute_sql_node(state: State) -> dict:

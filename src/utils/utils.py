@@ -1,7 +1,12 @@
-import yaml
 from pathlib import Path
 
+import yaml
 from langchain_core.prompts import ChatPromptTemplate
+from sqlglot import exp, parse_one, ParseError
+
+
+class UnsafeQueryException(Exception):
+    pass
 
 
 def load_config(config_path: str | Path) -> dict:
@@ -16,22 +21,25 @@ def load_config(config_path: str | Path) -> dict:
         print("Error while parsing the yaml config file:", str(e))
         raise
 
+
 def load_chat_prompt_template(
-    target_prompt: str, file_path: str | Path="prompts/prompts.yaml"
+    target_prompt: str, file_path: str | Path = "prompts/prompts.yaml"
 ) -> ChatPromptTemplate:
     """Set up a prompt template from a YAML file.
-    
+
     Args:
         file_path: Path to the prompt YAML file
         target_prompt: Name of the prompt to load from YAML file
-    
+
     Returns:
         Langchain's ChatPromptTemplate
-"""
+    """
 
     prompts = load_config(file_path)
     if prompts.get(target_prompt) is None:
-        raise ValueError(f"Prompt template {target_prompt} not found in the prompt file at {file_path}")
+        raise ValueError(
+            f"Prompt template {target_prompt} not found in the prompt file at {file_path}"
+        )
 
     return ChatPromptTemplate.from_messages(
         [
@@ -39,3 +47,22 @@ def load_chat_prompt_template(
             ("human", prompts[target_prompt]["user_prompt"]),
         ]
     )
+
+
+def _validate_sql_syntax(query: str) -> bool:
+    try:
+        parsed_query = parse_one(query, read="postgres")
+
+        # Only allow 'SELECT' statements:   (redundant safety validation)
+        if not isinstance(parsed_query, exp.Select):
+            raise UnsafeQueryException(f"Expected a 'SELECT' query, got {type(parsed_query).__name__}")  # TODO: Create custom exception
+        return True
+
+    except ParseError as e:
+        print(f"SQL parsing error: {str(e)}")
+    except UnsafeQueryException as e:
+        print(f"Unsafe query {str(e)}")
+    except Exception as e:
+        print(f"Unknown exception {str(e)}")
+    finally:
+        raise

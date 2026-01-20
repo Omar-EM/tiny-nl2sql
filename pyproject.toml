@@ -10,5 +10,6 @@ dependencies = [
     "langgraph>=1.0.5",
     "pydantic>=2.12.5",
     "python-dotenv[cli]>=1.2.1",
+    "sqlglot>=28.6.0",
     "uvicorn>=0.40.0",
 ]

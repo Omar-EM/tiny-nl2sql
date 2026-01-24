@@ -215,5 +215,9 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Dirs
+knowledge/
+notebooks/
+
 # Misc
 .DS_Store

@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: dockerpg
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ecommerce_db
+    # Add volumes for persistency
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dockerpgadmin
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      # Required by pgAdmin
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: secret
+
+      # Don't require the user to login
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+
+      # Don't require a "master" password after logging in
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"

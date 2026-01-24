@@ -1,0 +1,8 @@
+ecommerce_db:
+  company_data:
+    - users
+    - products
+    - orders
+    - order_items
+    - events
+    - reviews

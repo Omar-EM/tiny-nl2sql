@@ -2,6 +2,7 @@ import yaml
 from pathlib import Path
 from typing import Annotated, Any
 from dotenv import load_dotenv
+
 load_dotenv(override=True)
 
 from pydantic import BaseModel, BeforeValidator, Field
@@ -18,6 +19,13 @@ class ColumnInfo(BaseModel):
     nullable: bool
     comment: str | None
     is_primary_key: bool
+
+    def __str__(self):
+        s = f"{self.name} ({self.type_.upper()}), NULLABLE ({self.nullable}), "
+        if self.comment:
+            s += "DESCRIPTION ({self.comment})"
+
+        return s
 
 
 class TableInfo(BaseModel):
@@ -55,6 +63,14 @@ class TableInfo(BaseModel):
             description=description,
         )
 
+    def format_context(self) -> str:
+        context = f"\t\t<TABLE ({self.name}) COLUMNS:>\n".expandtabs(4)
+        for c in self.columns:
+            context += f"\t\t\t-  {c!s} \n".expandtabs(4)
+
+        context += f"\t\t</TABLE ({self.name}) COLUMNS:>\n".expandtabs(4)
+        return context
+
 
 class SchemaInfo(BaseModel):
     """Class that represents a schema in the db"""
@@ -63,16 +79,22 @@ class SchemaInfo(BaseModel):
     tables: dict[str, TableInfo]
 
     @classmethod
-    def from_inspector(
-        cls, inspector: Inspector, schema_name: str
-    ) -> "SchemaInfo":
+    def from_inspector(cls, inspector: Inspector, schema_name: str) -> "SchemaInfo":
         return cls(
             name=schema_name,
             tables={
                 table_name: TableInfo.from_inspector(inspector, table_name, schema_name)
                 for table_name in inspector.get_table_names(schema_name)
-            }
+            },
         )
+
+    def format_context(self) -> str:
+        context = f"\t<SCHEMA: {self.name}>\n".expandtabs(4)
+        for table in self.tables.values():
+            context += table.format_context() + "\n"
+        context += f"\t</SCHEMA: {self.name}>".expandtabs(4)
+
+        return context
 
 
 class DatabaseInfo(BaseModel):
@@ -80,6 +102,14 @@ class DatabaseInfo(BaseModel):
 
     name: str
     schemas: dict[str, SchemaInfo]
+
+    def format_context(self) -> str:
+        context = f"<DATABASE: {self.name}>\n"
+        for schema in self.schemas.values():
+            context += schema.format_context() + "\n"
+        context += f"</DATABASE: {self.name}>\n\n"
+
+        return context
 
 
 class DataDictionary(BaseModel):
@@ -89,13 +119,17 @@ class DataDictionary(BaseModel):
 
     @classmethod
     def from_inspector(
-        cls, inspector: Inspector, database_schema_dict: dict,
+        cls,
+        inspector: Inspector,
+        database_schema_dict: dict,
     ) -> "DatabaseInfo":
         databases = {}
         for db_name, schemas in database_schema_dict.items():
             schemas_models = {}
             for schema_name in schemas:
-                schemas_models[schema_name] = SchemaInfo.from_inspector(inspector, schema_name)
+                schemas_models[schema_name] = SchemaInfo.from_inspector(
+                    inspector, schema_name
+                )
             databases[db_name] = DatabaseInfo(name=db_name, schemas=schemas_models)
 
         return cls(databases=databases)
@@ -107,18 +141,27 @@ class DataDictionary(BaseModel):
         OUTPUT_SCHEMA_DIR.mkdir(parents=True, exist_ok=True)
         if not output_path:
             output_path = OUTPUT_SCHEMA_DIR / "knowledge_dict.yaml"
-        
+
         with output_path.open("w") as file:
             yaml.dump(self.model_dump(), file, sort_keys=False)
 
         return output_path
-        
 
-if __name__ == "__main__":
+    def format_context(self) -> str:
+        #context = "DATABASES:\n"
+        context = ""
+        for database in self.databases.values():
+            context += database.format_context()
+
+        return context
+
+
+def init_data_dictionary():
     engine = sa.create_engine(DB_CONNECTION_STRING)
     inspector = sa.inspect(engine)
 
     db_schemas_dict = load_config(TABLES_FILE)
 
-    data_dictionary = DataDictionary.from_inspector(inspector, db_schemas_dict)
-    data_dictionary.save(None)
+    return DataDictionary.from_inspector(inspector, db_schemas_dict)
+    # print(data_dictionary.format_context())
+    # data_dictionary.save(None)

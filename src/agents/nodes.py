@@ -4,10 +4,12 @@ from typing import Literal
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage
 
+from ..services.schema_loader import init_data_dictionary
 from ..utils.consts import UNSAFE_SQL_KW
 from ..utils.utils import _validate_sql_syntax, load_chat_prompt_template
 from .state import State
 
+data_dict = init_data_dictionary()
 
 def generate_sql_node(state: State) -> dict:
     """Generates SQL query from natiral language using LLM"""
@@ -18,7 +20,7 @@ def generate_sql_node(state: State) -> dict:
         f"{msg.type.upper()}: {msg.content}" for msg in state.messages
     )
     # Get schema context
-    schema_context = "This is a dummy schema context"
+    schema_context = data_dict.format_context()
     # Get prompt
     sql_generator_prompt = load_chat_prompt_template(target_prompt="sql_generator")
 

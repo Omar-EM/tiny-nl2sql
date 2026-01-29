@@ -1,15 +1,16 @@
-import yaml
 from pathlib import Path
 from typing import Annotated, Any
+
+import yaml
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
+import sqlalchemy as sa
 from pydantic import BaseModel, BeforeValidator, Field
 from sqlalchemy.engine.reflection import Inspector
-import sqlalchemy as sa
 
-from ..utils.consts import OUTPUT_SCHEMA_DIR, TABLES_FILE, DB_CONNECTION_STRING
+from ..utils.consts import DB_CONNECTION_STRING, OUTPUT_SCHEMA_DIR, TABLES_FILE
 from ..utils.utils import load_config
 
 

@@ -12,7 +12,7 @@ from .state import State
 data_dict = init_data_dictionary()
 
 def generate_sql_node(state: State) -> dict:
-    """Generates SQL query from natiral language using LLM"""
+    """Generates SQL query from natural language using LLM"""
     print("[NODE] SQL Generator")
 
     # Get history context
@@ -78,4 +78,4 @@ def execute_sql_node(state: State) -> dict:
 
 def check_sql_validity_node(state: State) -> Literal["valid", "invalid"]:
     print("[ROUTING NODE] checking sql query validity")
-    return "valid" if state.is_safe else "invalide"
+    return "valid" if state.is_safe else "invalid"

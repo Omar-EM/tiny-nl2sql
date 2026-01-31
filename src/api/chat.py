@@ -22,15 +22,13 @@ async def chat(request: ChatRequest) -> ChatResponse:
     config = {"configurable": {"thread_id": session_id}}
     # Create initial graph state and start conversation
     graph = build_graph()
-    initial_state = get_initial_state(messages=[user_query], query=user_query.content)
+    initial_state = get_initial_state(messages=[], query=user_query.content)    # OEM: No msg history handled for now
 
     print("Start graph agent execution...")
     res = graph.invoke(initial_state, config=config)
 
-    print(f"got {res=}")
-
     return {
-        "message": "dummy msg",
-        "session_id": "session_123",
+        "message": res["ai_message"].content,
+        "session_id": session_id,
         "metadata": None,
     }

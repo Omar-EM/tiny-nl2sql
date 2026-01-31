@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, TypedDict
 from pydantic import BaseModel
 from langgraph.graph.message import add_messages
 from langchain_core.messages import BaseMessage
@@ -14,6 +14,7 @@ class State(BaseModel):
     is_valid_syntax: bool | None = None
     sql_execution_status: str = "Initialized"   # TODO: Should be an Enum
     sql_execution_result: str | None = None
+    ai_message: BaseMessage | None = None
 
 
 def get_initial_state(messages: list[BaseMessage], query: str) -> State:

@@ -12,7 +12,7 @@ from ..utils.consts import UNSAFE_SQL_KW
 from ..utils.utils import _validate_sql_syntax, load_chat_prompt_template
 from .state import State
 
-data_dict = init_data_dictionary()
+# data_dict = init_data_dictionary()
 
 
 def generate_sql_node(state: State) -> dict:
@@ -40,7 +40,7 @@ def generate_sql_node(state: State) -> dict:
         {
             "user_query": state.user_query,
             "chat_history": chat_history,
-            "schema_context": data_dict.format_context(),
+            "schema_context": "ii"#data_dict.format_context(),
             # "sql_example": "" # To add later on (few-shot prompting)
         }
     )
@@ -68,6 +68,11 @@ def validate_sql_node(state: State) -> dict:
             is_valid_syntax = False
 
         return {"is_safe": True, "is_valid_syntax": is_valid_syntax}
+
+
+def hitl_node(state: State) -> dict:
+    """Get the human approval"""
+    return {"is_interrupted": False}
 
 
 def execute_sql_node(state: State) -> dict:

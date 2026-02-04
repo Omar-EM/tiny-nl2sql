@@ -13,6 +13,7 @@ class State(BaseModel):
     generated_sql: str | None = None
     is_safe: bool | None = None
     is_valid_syntax: bool | None = None
+    is_interrupted: bool = False
     sql_execution_status: str = "Initialized"  # TODO: Should be an Enum
     sql_execution_result: str | None = None
     ai_message: BaseMessage | None = None

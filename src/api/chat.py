@@ -10,7 +10,7 @@ from .models import ChatRequest, ChatResponse
 chat_router = APIRouter(prefix="/chat")
 
 
-@chat_router.post('/')
+@chat_router.post("/")
 async def chat(request: ChatRequest) -> ChatResponse:
     """Chat endpoint that processes user messages through the NL2SQL agent."""
 
@@ -22,7 +22,9 @@ async def chat(request: ChatRequest) -> ChatResponse:
     config = {"configurable": {"thread_id": session_id}}
     # Create initial graph state and start conversation
     graph = build_graph()
-    initial_state = get_initial_state(messages=[], query=user_query.content)    # OEM: No msg history handled for now
+    initial_state = get_initial_state(
+        messages=[], query=user_query.content
+    )  # OEM: No msg history handled for now
 
     print("Start graph agent execution...")
     res = graph.invoke(initial_state, config=config)

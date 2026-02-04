@@ -86,8 +86,7 @@ def execute_sql_node(state: State) -> dict:
             res = cur.fetchall()
         except (Exception, psycopg2.DatabaseError) as e:
             print(e)
-            
-        
+
     return {"sql_execution_status": "DONE", "sql_execution_result": str(res)}
 
 
@@ -107,11 +106,13 @@ def render_message_node(state: State) -> dict:
     # Get prompt
     sql_generator_prompt = load_chat_prompt_template(target_prompt="result_analyzer")
 
-    ai_final_response = (sql_generator_prompt | llm).invoke({
-        "user_query": state.user_query,
-        "sql_query": str(state.generated_sql),
-        "query_results": str(state.sql_execution_result),
-    })
+    ai_final_response = (sql_generator_prompt | llm).invoke(
+        {
+            "user_query": state.user_query,
+            "sql_query": str(state.generated_sql),
+            "query_results": str(state.sql_execution_result),
+        }
+    )
 
     return {"ai_message": ai_final_response}
 

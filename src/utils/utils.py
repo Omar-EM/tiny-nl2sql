@@ -2,7 +2,7 @@ from pathlib import Path
 
 import yaml
 from langchain_core.prompts import ChatPromptTemplate
-from sqlglot import exp, parse_one, ParseError
+from sqlglot import ParseError, exp, parse_one
 
 
 class UnsafeQueryException(Exception):
@@ -55,7 +55,9 @@ def _validate_sql_syntax(query: str) -> bool:
 
         # Only allow 'SELECT' statements:   (redundant safety validation)
         if not isinstance(parsed_query, exp.Select):
-            raise UnsafeQueryException(f"Expected a 'SELECT' query, got {type(parsed_query).__name__}")  # TODO: Create custom exception
+            raise UnsafeQueryException(
+                f"Expected a 'SELECT' query, got {type(parsed_query).__name__}"
+            )  # TODO: Create custom exception
         return True
 
     except ParseError as e:

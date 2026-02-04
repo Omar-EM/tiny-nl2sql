@@ -11,14 +11,16 @@ Usage (from project root):
 
 import os
 from pathlib import Path
+
 import psycopg2
-from psycopg2 import sql
 from dotenv import load_dotenv
+from psycopg2 import sql
 
 load_dotenv(override=True)
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "dataset" / "ecommerce_dataset"
+
 
 def get_conn():
     host = os.getenv("PGHOST", "localhost")
@@ -103,11 +105,19 @@ def load_csv_copy(cur, table: str, csv_path: Path, columns=None):
     """Use COPY to load CSV file into `table`. `columns` is optional list."""
     if not csv_path.exists():
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
-    cols_sql = sql.SQL(',').join(sql.Identifier(c) for c in columns) if columns else sql.SQL('')
+    cols_sql = (
+        sql.SQL(",").join(sql.Identifier(c) for c in columns)
+        if columns
+        else sql.SQL("")
+    )
     if columns:
-        copy_sql = sql.SQL("COPY {}({}) FROM STDIN WITH CSV HEADER").format(sql.Identifier(table), cols_sql)
+        copy_sql = sql.SQL("COPY {}({}) FROM STDIN WITH CSV HEADER").format(
+            sql.Identifier(table), cols_sql
+        )
     else:
-        copy_sql = sql.SQL("COPY {} FROM STDIN WITH CSV HEADER").format(sql.Identifier(table))
+        copy_sql = sql.SQL("COPY {} FROM STDIN WITH CSV HEADER").format(
+            sql.Identifier(table)
+        )
     with csv_path.open("r", encoding="utf-8") as f:
         cur.copy_expert(copy_sql.as_string(cur), f)
 

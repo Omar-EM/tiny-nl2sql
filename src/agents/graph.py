@@ -23,7 +23,11 @@ def build_graph(checkpointer: BaseCheckpointSaver | None = None) -> StateGraph:
     graph.add_edge(START, "generate_sql")
     graph.add_edge("generate_sql", "validate_sql")
 
-    graph.add_conditional_edges("validate_sql", check_sql_validity_node, {"valid": "execute_sql", "invalide": END})
+    graph.add_conditional_edges(
+        "validate_sql",
+        check_sql_validity_node,
+        {"valid": "execute_sql", "invalide": END},
+    )
     graph.add_edge("execute_sql", "render_message")
     graph.add_edge("render_message", END)
 

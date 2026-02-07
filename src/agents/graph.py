@@ -10,7 +10,7 @@ from .nodes import (
     render_message_node,
     validate_sql_node,
 )
-from .nodes_enum import Node
+from .enums import Node
 from .state import State
 
 

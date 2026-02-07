@@ -9,7 +9,7 @@ from langgraph.types import interrupt, Command
 from langgraph.graph import END
 
 from ..services.schema_loader import init_data_dictionary
-from .nodes_enum import Node
+from .enums import Node
 from ..utils.consts import DB_CONNECTION_STRING, UNSAFE_SQL_KW
 from ..utils.utils import _validate_sql_syntax, load_chat_prompt_template
 from .state import State

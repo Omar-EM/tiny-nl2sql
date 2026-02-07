@@ -3,6 +3,8 @@ from typing import Annotated, TypedDict
 from langchain_core.messages import BaseMessage, AIMessage
 from langgraph.graph.message import add_messages
 
+from .enums import ExecutionStatus
+
 
 class State(TypedDict):
     """State for the NL2SQL Agent"""
@@ -22,7 +24,7 @@ class State(TypedDict):
     human_feedback: str | None = None
 
     # SQL execution node state
-    sql_execution_status: str = "Initialized"  # TODO: Should be an Enum
+    sql_execution_status: ExecutionStatus = ExecutionStatus.INITIALIZED
     sql_execution_result: str | None = None
     ai_message: AIMessage | None = None
 

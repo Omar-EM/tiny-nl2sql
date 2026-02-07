@@ -20,7 +20,6 @@ class State(TypedDict):
 
     # HITL state
     human_feedback: str | None = None
-    is_interrupted: bool = False
 
     # SQL execution node state
     sql_execution_status: str = "Initialized"  # TODO: Should be an Enum

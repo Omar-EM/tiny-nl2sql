@@ -8,7 +8,7 @@ from .nodes import (
     generate_sql_node,
     render_message_node,
     validate_sql_node,
-    hitl_node
+    hitl_node,
 )
 from .state import State
 
@@ -31,11 +31,6 @@ def build_graph(checkpointer: BaseCheckpointSaver | None = None) -> StateGraph:
         {"valid": "interrupt_HITL", "invalid": END},
     )
 
-    graph.add_conditional_edges(
-        "interrupt_HITL",
-        hitl_node,
-        {"approved": "execute_sql", "rejected": END}
-    )
     graph.add_edge("execute_sql", "render_message")
     graph.add_edge("render_message", END)
 

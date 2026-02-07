@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter
 from langchain_core.messages import HumanMessage
+from langgraph.types import Command
 
 from ..agents.graph import build_graph
 from ..agents.state import get_initial_state
@@ -29,6 +30,9 @@ async def chat(request: ChatRequest) -> ChatResponse:
     print("Start graph agent execution...")
     res = graph.invoke(initial_state, config=config)
 
+    if "__interrupt__" in res:
+        res = graph.invoke(Command(resume=input(res['__interrupt__'][0].value + "\n> ")), config=config)
+    
     return {
         "message": res["ai_message"].content,
         "session_id": session_id,

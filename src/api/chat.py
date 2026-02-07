@@ -6,7 +6,7 @@ from langgraph.types import Command
 
 from ..agents.graph import build_graph
 from ..agents.state import get_initial_state
-from .models import ChatRequest, ChatResponse
+from .schemas import ChatRequest, ChatResponse
 
 chat_router = APIRouter(prefix="/chat")
 

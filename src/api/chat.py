@@ -11,7 +11,7 @@ from .schemas import ChatRequest, GetStatusResponse, InitialPostStatusResponse
 chat_router = APIRouter(prefix="/chat")
 
 
-async def start_agent(graph, user_query: str, session_id: str):
+async def run_agent(graph, user_query: str, session_id: str):
     initial_state = get_initial_state(
         messages=[], query=user_query.content
     )  # OEM: No msg history handled for now
@@ -23,7 +23,7 @@ async def start_agent(graph, user_query: str, session_id: str):
 
 
 @chat_router.post("/", response_model=InitialPostStatusResponse)
-async def chat(
+async def create_session(
     request: ChatRequest,
     background_task: BackgroundTasks,
     graph=Depends(get_graph),
@@ -32,7 +32,7 @@ async def chat(
 
     session_id = request.session_id or str(uuid4())
     background_task.add_task(
-        start_agent, graph, HumanMessage(content=request.message), session_id
+        run_agent, graph, HumanMessage(content=request.message), session_id
     )
 
     return {
@@ -42,7 +42,7 @@ async def chat(
 
 
 @chat_router.get("/{session_id}/status", response_model=GetStatusResponse)
-async def get_agent_status(session_id: str, graph=Depends(get_graph)):
+async def get_session_status(session_id: str, graph=Depends(get_graph)):
     config = {"configurable": {"thread_id": session_id}}
     graph_state = graph.get_state(config)
     if not graph_state.values:  # TODO: (REMINDER) check for a better way
@@ -55,8 +55,8 @@ async def get_agent_status(session_id: str, graph=Depends(get_graph)):
     }
 
 
-@chat_router.get("/{session_id}/pending-approval")
-async def get_user_approval(session_id: str, graph=Depends(get_graph)):
+@chat_router.get("/{session_id}/approval")
+async def get_pending_approval(session_id: str, graph=Depends(get_graph)):
     config = {"configurable": {"thread_id": session_id}}
     graph_state = graph.get_state(config)
 

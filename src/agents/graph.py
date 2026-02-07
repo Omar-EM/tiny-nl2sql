@@ -6,33 +6,34 @@ from .nodes import (
     check_sql_validity_node,
     execute_sql_node,
     generate_sql_node,
+    hitl_node,
     render_message_node,
     validate_sql_node,
-    hitl_node,
 )
+from .nodes_enum import Node
 from .state import State
 
 
 def build_graph(checkpointer: BaseCheckpointSaver | None = None) -> StateGraph:
     graph = StateGraph(State)
 
-    graph.add_node("generate_sql", generate_sql_node)
-    graph.add_node("validate_sql", validate_sql_node)
-    graph.add_node("interrupt_HITL", hitl_node)
-    graph.add_node("execute_sql", execute_sql_node)
-    graph.add_node("render_message", render_message_node)
+    graph.add_node(Node.GENERATE_SQL.value, generate_sql_node)
+    graph.add_node(Node.VALID_SQL.value, validate_sql_node)
+    graph.add_node(Node.HITL.value, hitl_node)
+    graph.add_node(Node.EXECUTE_SQL.value, execute_sql_node)
+    graph.add_node(Node.RENDER_FINAL_MESSAGE.value, render_message_node)
 
-    graph.add_edge(START, "generate_sql")
-    graph.add_edge("generate_sql", "validate_sql")
+    graph.add_edge(START, Node.GENERATE_SQL.value)
+    graph.add_edge(Node.GENERATE_SQL.value, Node.VALID_SQL.value)
 
     graph.add_conditional_edges(
-        "validate_sql",
+        Node.VALID_SQL.value,
         check_sql_validity_node,
-        {"valid": "interrupt_HITL", "invalid": END},
+        {"valid": Node.HITL.value, "invalid": END},
     )
 
-    graph.add_edge("execute_sql", "render_message")
-    graph.add_edge("render_message", END)
+    graph.add_edge(Node.EXECUTE_SQL.value, Node.RENDER_FINAL_MESSAGE.value)
+    graph.add_edge(Node.RENDER_FINAL_MESSAGE.value, END)
 
     if checkpointer is None:
         checkpointer = MemorySaver()

@@ -1,6 +1,6 @@
 from typing import Annotated, TypedDict
 
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, AIMessage
 from langgraph.graph.message import add_messages
 
 
@@ -25,7 +25,7 @@ class State(TypedDict):
     # SQL execution node state
     sql_execution_status: str = "Initialized"  # TODO: Should be an Enum
     sql_execution_result: str | None = None
-    ai_message: BaseMessage | None = None
+    ai_message: AIMessage | None = None
 
 
 def get_initial_state(messages: list[BaseMessage], query: str) -> State:

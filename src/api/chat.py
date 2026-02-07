@@ -34,7 +34,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
         res = graph.invoke(Command(resume=input(res['__interrupt__'][0].value + "\n> ")), config=config)
     
     return {
-        "message": res["ai_message"].content,
         "session_id": session_id,
+        "message": res["ai_message"].content if hasattr(res["ai_message"], "content") else "",
         "metadata": None,
     }
+

@@ -2,6 +2,7 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from .enums import Node
 from .nodes import (
     check_sql_validity_node,
     execute_sql_node,
@@ -10,11 +11,11 @@ from .nodes import (
     render_message_node,
     validate_sql_node,
 )
-from .enums import Node
 from .state import State
 
+_checkpointer = MemorySaver()       # TODO: Remove this global in-memory checkpointer
 
-def build_graph(checkpointer: BaseCheckpointSaver | None = None) -> StateGraph:
+def build_graph(checkpointer: BaseCheckpointSaver | None = None):
     graph = StateGraph(State)
 
     graph.add_node(Node.GENERATE_SQL.value, generate_sql_node)
@@ -36,6 +37,9 @@ def build_graph(checkpointer: BaseCheckpointSaver | None = None) -> StateGraph:
     graph.add_edge(Node.RENDER_FINAL_MESSAGE.value, END)
 
     if checkpointer is None:
-        checkpointer = MemorySaver()
+        checkpointer = _checkpointer
 
     return graph.compile(checkpointer=checkpointer)
+
+def get_graph():
+    return build_graph()

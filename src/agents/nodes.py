@@ -9,7 +9,7 @@ from langgraph.types import interrupt, Command
 from langgraph.graph import END
 
 from ..services.schema_loader import init_data_dictionary
-from .enums import Node
+from .enums import Node, AgentStatus
 from ..utils.consts import DB_CONNECTION_STRING, UNSAFE_SQL_KW
 from ..utils.utils import _validate_sql_syntax, load_chat_prompt_template
 from .state import State
@@ -47,7 +47,7 @@ def generate_sql_node(state: State) -> dict:
         }
     )
 
-    return response
+    return {**response, "status": AgentStatus.PENDING}
 
 
 def validate_sql_node(state: State) -> dict:
@@ -72,7 +72,7 @@ def validate_sql_node(state: State) -> dict:
         return {"is_safe": True, "is_valid_syntax": is_valid_syntax}
 
 
-def hitl_node(state: State) -> dict:
+def hitl_node(state: State) -> Command:
     """Get the human approval"""
 
     interrupt_message = format_interrupt_message({
@@ -100,7 +100,7 @@ def execute_sql_node(state: State) -> dict:
         except (Exception, psycopg2.DatabaseError) as e:
             print(e)
 
-    return {"sql_execution_status": "DONE", "sql_execution_result": str(res)}
+    return {"sql_execution_result": str(res)}
 
 
 def render_message_node(state: State) -> dict:
@@ -127,7 +127,7 @@ def render_message_node(state: State) -> dict:
         }
     )
 
-    return {"ai_message": ai_final_response}
+    return {"ai_message": ai_final_response, "status": AgentStatus.DONE}
 
 
 #################################

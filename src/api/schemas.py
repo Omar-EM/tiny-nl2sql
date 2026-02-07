@@ -1,6 +1,5 @@
-from typing import Any
-
 from pydantic import BaseModel
+from ..agents.enums import AgentStatus
 
 
 class ChatRequest(BaseModel):
@@ -9,16 +8,26 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str | None = None
 
-class RequestStatus(BaseModel):
-    """status of the request"""
+
+class BaseStatusResponse(BaseModel):
+    """Status when first instantiating the agentic workflow"""
 
     session_id: str
+    status: AgentStatus
+
+
+class InitialPostStatusResponse(BaseStatusResponse):
+    """Status when first instantiating the agentic workflow"""
+    pass
+
+
+class GetStatusResponse(BaseStatusResponse):
+    """Status once the agentic workflow kicks out"""
+
     is_awaiting_approval: bool
 
 
-class ChatResponse(BaseModel):
-    """Chat response model"""
+class ApprovalStatusResponse(GetStatusResponse):
+    """response status when the interrupt data is requested"""
 
-    session_id: str
-    message: str
-    metadata: dict[str, Any] | None = None
+    interrupt_data: str | dict

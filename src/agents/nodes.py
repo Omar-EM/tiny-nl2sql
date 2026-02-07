@@ -8,11 +8,11 @@ from langchain_core.messages import AIMessage
 from langchain_core.output_parsers import JsonOutputParser
 
 from ..services.schema_loader import init_data_dictionary
-from ..utils.consts import UNSAFE_SQL_KW
+from ..utils.consts import DB_CONNECTION_STRING, UNSAFE_SQL_KW
 from ..utils.utils import _validate_sql_syntax, load_chat_prompt_template
 from .state import State
 
-# data_dict = init_data_dictionary()
+data_dict = init_data_dictionary()
 
 
 def generate_sql_node(state: State) -> dict:
@@ -40,7 +40,7 @@ def generate_sql_node(state: State) -> dict:
         {
             "user_query": state.user_query,
             "chat_history": chat_history,
-            "schema_context": "ii"#data_dict.format_context(),
+            "schema_context": data_dict.format_context(),
             # "sql_example": "" # To add later on (few-shot prompting)
         }
     )
@@ -79,9 +79,7 @@ def execute_sql_node(state: State) -> dict:
     """Excute the generated sql query"""
     print("[NODE] execute SQL query")
     try:
-        conn = psycopg2.connect(
-            f"dbname={os.getenv('PGDATABASE')} user={os.getenv('PGUSER')} host={os.getenv('PGHOST')} password={os.getenv('PGPASSWORD')}"
-        )
+        conn = psycopg2.connect(DB_CONNECTION_STRING)
     except Exception as e:
         print(f"Cannot connect to db: {e}")
 

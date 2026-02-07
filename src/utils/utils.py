@@ -60,11 +60,11 @@ def _validate_sql_syntax(query: str) -> bool:
             )  # TODO: Create custom exception
         return True
 
-    except ParseError as e:
-        print(f"SQL parsing error: {str(e)}")
-    except UnsafeQueryException as e:
-        print(f"Unsafe query {str(e)}")
     except Exception as e:
-        print(f"Unknown exception {str(e)}")
-    finally:
+        error_messages = {
+            ParseError: f"SQL parsing error: {str(e)}",
+            UnsafeQueryException: f"Unsafe query {str(e)}"
+        }
+        print(error_messages.get(type(e), f"Unknown exception {str(e)}"))
+
         raise

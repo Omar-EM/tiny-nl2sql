@@ -13,7 +13,8 @@ from .nodes import (
 )
 from .state import State
 
-_checkpointer = MemorySaver()       # TODO: Remove this global in-memory checkpointer
+_checkpointer = MemorySaver()  # TODO: Remove this global in-memory checkpointer
+
 
 def build_graph(checkpointer: BaseCheckpointSaver | None = None):
     graph = StateGraph(State)
@@ -40,6 +41,7 @@ def build_graph(checkpointer: BaseCheckpointSaver | None = None):
         checkpointer = _checkpointer
 
     return graph.compile(checkpointer=checkpointer)
+
 
 def get_graph():
     return build_graph()

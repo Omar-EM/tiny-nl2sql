@@ -5,13 +5,13 @@ import psycopg2
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage
 from langchain_core.output_parsers import JsonOutputParser
-from langgraph.types import interrupt, Command
 from langgraph.graph import END
+from langgraph.types import Command, interrupt
 
 from ..services.schema_loader import init_data_dictionary
-from .enums import Node, AgentStatus
 from ..utils.consts import DB_CONNECTION_STRING, UNSAFE_SQL_KW
 from ..utils.utils import _validate_sql_syntax, load_chat_prompt_template
+from .enums import AgentStatus, Node
 from .state import State
 
 data_dict = init_data_dictionary()
@@ -75,14 +75,18 @@ def validate_sql_node(state: State) -> dict:
 def hitl_node(state: State) -> Command:
     """Get the human approval"""
 
-    interrupt_message = format_interrupt_message({
-        "generated_sql": state["generated_sql"],
-        "sql_explanation": state["sql_explanation"]
-    })
+    interrupt_message = format_interrupt_message(
+        {
+            "generated_sql": state["generated_sql"],
+            "sql_explanation": state["sql_explanation"],
+        }
+    )
 
     human_feedback = interrupt(interrupt_message)
 
-    return Command(goto=Node.EXECUTE_SQL.value if human_feedback.lower()=='y' else END)
+    return Command(
+        goto=Node.EXECUTE_SQL.value if human_feedback.lower() == "y" else END
+    )
 
 
 def execute_sql_node(state: State) -> dict:
@@ -142,10 +146,10 @@ def check_sql_validity_node(state: State) -> Literal["valid", "invalid"]:
 
 # Helper functions
 
+
 def format_interrupt_message(dict_to_format: dict):
     formatted = "Generated SQL: " + dict_to_format["generated_sql"]
 
-    formatted += '\nExplanation: ' + dict_to_format["sql_explanation"]
+    formatted += "\nExplanation: " + dict_to_format["sql_explanation"]
 
     return formatted
-    

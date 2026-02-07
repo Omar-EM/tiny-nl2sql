@@ -6,7 +6,7 @@ from langchain_core.messages import HumanMessage
 from ..agents.enums import AgentStatus
 from ..agents.graph import get_graph
 from ..agents.state import get_initial_state
-from .schemas import ChatRequest, InitialPostStatusResponse, GetStatusResponse
+from .schemas import ChatRequest, GetStatusResponse, InitialPostStatusResponse
 
 chat_router = APIRouter(prefix="/chat")
 
@@ -45,18 +45,18 @@ async def chat(
 async def get_agent_status(session_id: str, graph=Depends(get_graph)):
     config = {"configurable": {"thread_id": session_id}}
     graph_state = graph.get_state(config)
-    if not graph_state.values:        # TODO: (REMINDER) check for a better way
+    if not graph_state.values:  # TODO: (REMINDER) check for a better way
         raise HTTPException(404, detail=f"session with id: ({session_id}) not found")
-    
+
     return {
         "session_id": session_id,
         "status": AgentStatus.INITIALIZED,
-        "is_awaiting_approval": len(graph_state.interrupts) > 0 
+        "is_awaiting_approval": len(graph_state.interrupts) > 0,
     }
 
 
 @chat_router.get("/{session_id}/pending-approval")
-async def get_user_approval(session_id: str, graph = Depends(get_graph)):
+async def get_user_approval(session_id: str, graph=Depends(get_graph)):
     config = {"configurable": {"thread_id": session_id}}
     graph_state = graph.get_state(config)
 

@@ -63,7 +63,7 @@ def _validate_sql_syntax(query: str) -> bool:
     except Exception as e:
         error_messages = {
             ParseError: f"SQL parsing error: {str(e)}",
-            UnsafeQueryException: f"Unsafe query {str(e)}"
+            UnsafeQueryException: f"Unsafe query {str(e)}",
         }
         print(error_messages.get(type(e), f"Unknown exception {str(e)}"))
 

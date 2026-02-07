@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+
 from ..agents.enums import AgentStatus
 
 
@@ -18,6 +19,7 @@ class BaseStatusResponse(BaseModel):
 
 class InitialPostStatusResponse(BaseStatusResponse):
     """Status when first instantiating the agentic workflow"""
+
     pass
 
 

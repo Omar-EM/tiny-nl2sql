@@ -9,6 +9,7 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str | None = None
 
+
 class ResumeRequest(BaseModel):
     """Request when resuming with a human feedback"""
 

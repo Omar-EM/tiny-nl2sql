@@ -94,23 +94,18 @@ async def approve_execution(
 
     background_task.add_task(resume_execution, graph, request.feedback, config)
 
-    return {
-        "session_id": session_id,
-        "status": AgentStatus.RUNNING
-    }
+    return {"session_id": session_id, "status": AgentStatus.RUNNING}
 
 
 @chat_router.get("/{session_id}/results", response_model=SessionResult)
 async def get_session_results(session_id: str, graph=Depends(get_graph)):
-
     graph_state = graph.get_state({"configurable": {"thread_id": session_id}})
 
     if not graph_state.values:
         raise HTTPException(404, detail="Session result not found")
-    
+
     return {
         "session_id": session_id,
         "status": AgentStatus.DONE,
-        "model_response": graph_state.values["ai_message"].content
+        "model_response": graph_state.values["ai_message"].content,
     }
-    

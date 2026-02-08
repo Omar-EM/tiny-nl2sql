@@ -11,7 +11,7 @@ class Node(str, Enum):
 
 class AgentStatus(str, Enum):
     INITIALIZED = "initialized"
-    PENDING = "pending"
+    RUNNING = "running"
     WAITING_APPROVAL = "waiting approval"
     DONE = "done"
     FAILED = "failed"

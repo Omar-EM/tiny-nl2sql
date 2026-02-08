@@ -9,6 +9,11 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str | None = None
 
+class ResumeRequest(BaseModel):
+    """Request when resuming with a human feedback"""
+
+    feedback: str
+
 
 class BaseStatusResponse(BaseModel):
     """Status when first instantiating the agentic workflow"""
@@ -17,7 +22,7 @@ class BaseStatusResponse(BaseModel):
     status: AgentStatus
 
 
-class InitialPostStatusResponse(BaseStatusResponse):
+class PostStatusResponse(BaseStatusResponse):
     """Status when first instantiating the agentic workflow"""
 
     pass
@@ -33,3 +38,9 @@ class ApprovalStatusResponse(GetStatusResponse):
     """response status when the interrupt data is requested"""
 
     interrupt_data: str | dict
+
+
+class SessionResult(BaseStatusResponse):
+    """Final result of the session run"""
+
+    model_response: str

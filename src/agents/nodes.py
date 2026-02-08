@@ -47,7 +47,7 @@ def generate_sql_node(state: State) -> dict:
         }
     )
 
-    return {**response, "status": AgentStatus.PENDING}
+    return {**response, "status": AgentStatus.RUNNING}
 
 
 def validate_sql_node(state: State) -> dict:
@@ -74,7 +74,7 @@ def validate_sql_node(state: State) -> dict:
 
 def hitl_node(state: State) -> Command:
     """Get the human approval"""
-
+    print("[HITL NODE] got state, ", state)
     interrupt_message = format_interrupt_message(
         {
             "generated_sql": state["generated_sql"],
@@ -83,7 +83,7 @@ def hitl_node(state: State) -> Command:
     )
 
     human_feedback = interrupt(interrupt_message)
-
+    print("human_fdb", human_feedback)
     return Command(
         goto=Node.EXECUTE_SQL.value if human_feedback.lower() == "y" else END
     )

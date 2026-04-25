@@ -34,6 +34,7 @@ def build_graph(checkpointer: BaseCheckpointSaver | None = None):
         {"valid": Node.HITL.value, "invalid": END},
     )
 
+    graph.add_edge(Node.HITL.value, Node.EXECUTE_SQL.value)
     graph.add_edge(Node.EXECUTE_SQL.value, Node.RENDER_FINAL_MESSAGE.value)
     graph.add_edge(Node.RENDER_FINAL_MESSAGE.value, END)
 

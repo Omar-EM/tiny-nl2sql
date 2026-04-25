@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import BaseMessage, HumanMessage
 from langgraph.types import Command
 
 from ..agents.enums import AgentStatus
@@ -18,7 +18,7 @@ from .schemas import (
 chat_router = APIRouter(prefix="/chat")
 
 
-async def run_agent(graph, user_query: str, session_id: str):
+async def run_agent(graph, user_query: BaseMessage, session_id: str):
     initial_state = get_initial_state(
         messages=[], query=user_query.content
     )  # OEM: No msg history handled for now

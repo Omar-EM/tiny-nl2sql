@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from langchain_core.messages import BaseMessage, HumanMessage
+from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
 from ..agents.enums import AgentStatus
@@ -37,7 +38,7 @@ async def resume_execution(graph, resume_data: str | dict, config: dict):
 async def create_session(
     request: ChatRequest,
     background_task: BackgroundTasks,
-    graph=Depends(get_graph),
+    graph: CompiledStateGraph = Depends(get_graph),
 ):
     """Chat endpoint that processes user messages through the NL2SQL agent."""
 
@@ -53,21 +54,32 @@ async def create_session(
 
 
 @chat_router.get("/{session_id}/status", response_model=GetStatusResponse)
-async def get_session_status(session_id: str, graph=Depends(get_graph)):
+async def get_session_status(
+    session_id: str, graph: CompiledStateGraph = Depends(get_graph)
+):
     config = {"configurable": {"thread_id": session_id}}
     graph_state = graph.get_state(config)
     if not graph_state.values:  # TODO: (REMINDER) check for a better way
         raise HTTPException(404, detail=f"session with id: ({session_id}) not found")
 
+    is_awaiting_approval = len(graph_state.interrupts) > 0
+    status = (
+        AgentStatus.WAITING_APPROVAL
+        if is_awaiting_approval
+        else graph_state.values.get("status", AgentStatus.INITIALIZED)
+    )
+
     return {
         "session_id": session_id,
-        "status": AgentStatus.INITIALIZED,
+        "status": status,
         "is_awaiting_approval": len(graph_state.interrupts) > 0,
     }
 
 
 @chat_router.get("/{session_id}/approval")
-async def get_pending_approval(session_id: str, graph=Depends(get_graph)):
+async def get_pending_approval(
+    session_id: str, graph: CompiledStateGraph = Depends(get_graph)
+):
     config = {"configurable": {"thread_id": session_id}}
     graph_state = graph.get_state(config)
 
@@ -76,7 +88,7 @@ async def get_pending_approval(session_id: str, graph=Depends(get_graph)):
 
     return {
         "session_id": session_id,
-        "status": AgentStatus.INITIALIZED,
+        "status": graph_state.values.get("status", AgentStatus.INITIALIZED),
         "is_awaiting_approval": len(graph_state.interrupts) > 0,
         "interrupt_data": graph_state.interrupts[0].value,
     }

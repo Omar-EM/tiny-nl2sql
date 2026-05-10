@@ -212,6 +212,11 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# MLFlow
+mlartifacts/
+mlruns/
+mlflow.db
+
 # Streamlit
 .streamlit/secrets.toml
 

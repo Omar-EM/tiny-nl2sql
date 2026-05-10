@@ -1,7 +1,8 @@
+import asyncio
 from uuid import uuid4
 
+import mlflow
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from langchain_core.messages import BaseMessage, HumanMessage
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
@@ -18,20 +19,24 @@ from .schemas import (
 
 chat_router = APIRouter(prefix="/chat")
 
+_session_queues: dict[str, asyncio.Queue] = {}
 
-async def run_agent(graph, user_query: BaseMessage, session_id: str):
-    initial_state = get_initial_state(
-        messages=[], query=user_query.content
-    )  # OEM: No msg history handled for now
 
+@mlflow.trace(name="nl2sql-graph-execution")
+async def run_full_session(graph: CompiledStateGraph, user_query: str, session_id: str):
+    initial_state = get_initial_state(messages=[], query=user_query)
     config = {"configurable": {"thread_id": session_id}}
 
     print("Start graph agent execution...")
     await graph.ainvoke(initial_state, config=config)
 
+    queue: asyncio.Queue = asyncio.Queue()
+    _session_queues[session_id] = queue
+    feedback = await queue.get()
+    _session_queues.pop(session_id, None)
 
-async def resume_execution(graph, resume_data: str | dict, config: dict):
-    return await graph.ainvoke(Command(resume=resume_data), config=config)
+    print(f"Resuming session {session_id} with feedback: {feedback}")
+    await graph.ainvoke(Command(resume=feedback), config=config)
 
 
 @chat_router.post("/", response_model=PostStatusResponse)
@@ -41,16 +46,9 @@ async def create_session(
     graph: CompiledStateGraph = Depends(get_graph),
 ):
     """Chat endpoint that processes user messages through the NL2SQL agent."""
-
     session_id = request.session_id or str(uuid4())
-    background_task.add_task(
-        run_agent, graph, HumanMessage(content=request.message), session_id
-    )
-
-    return {
-        "session_id": session_id,
-        "status": AgentStatus.INITIALIZED,
-    }
+    background_task.add_task(run_full_session, graph, request.message, session_id)
+    return {"session_id": session_id, "status": AgentStatus.INITIALIZED}
 
 
 @chat_router.get("/{session_id}/status", response_model=GetStatusResponse)
@@ -59,7 +57,7 @@ async def get_session_status(
 ):
     config = {"configurable": {"thread_id": session_id}}
     graph_state = graph.get_state(config)
-    if not graph_state.values:  # TODO: (REMINDER) check for a better way
+    if not graph_state.values:
         raise HTTPException(404, detail=f"session with id: ({session_id}) not found")
 
     is_awaiting_approval = len(graph_state.interrupts) > 0
@@ -72,7 +70,7 @@ async def get_session_status(
     return {
         "session_id": session_id,
         "status": status,
-        "is_awaiting_approval": len(graph_state.interrupts) > 0,
+        "is_awaiting_approval": is_awaiting_approval,
     }
 
 
@@ -89,7 +87,7 @@ async def get_pending_approval(
     return {
         "session_id": session_id,
         "status": graph_state.values.get("status", AgentStatus.INITIALIZED),
-        "is_awaiting_approval": len(graph_state.interrupts) > 0,
+        "is_awaiting_approval": True,
         "interrupt_data": graph_state.interrupts[0].value,
     }
 
@@ -98,14 +96,11 @@ async def get_pending_approval(
 async def approve_execution(
     request: ResumeRequest,
     session_id: str,
-    background_task: BackgroundTasks,
-    graph=Depends(get_graph),
 ):
-    # TODO: Should add verification for session_id
-    config = {"configurable": {"thread_id": session_id}}
-
-    background_task.add_task(resume_execution, graph, request.feedback, config)
-
+    queue = _session_queues.get(session_id)
+    if queue is None:
+        raise HTTPException(404, detail=f"No pending approval for session {session_id}")
+    await queue.put(request.feedback)
     return {"session_id": session_id, "status": AgentStatus.RUNNING}
 
 

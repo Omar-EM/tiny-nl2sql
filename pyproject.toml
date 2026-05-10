@@ -8,6 +8,7 @@ dependencies = [
     "fastapi>=0.128.0",
     "langchain[google-genai]>=1.2.3",
     "langgraph>=1.0.5",
+    "mlflow>=3.11.1",
     "psycopg2-binary>=2.9.11",
     "pydantic>=2.12.5",
     "python-dotenv[cli]>=1.2.1",

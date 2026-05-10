@@ -1,3 +1,4 @@
+import mlflow
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,6 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv(override=True)
 
 from .api.chat import chat_router
+
+mlflow.set_experiment("LangGraph_test")
+mlflow.set_tracking_uri("http://localhost:5001")
 
 app = FastAPI(
     title="NL2SQL Agent API",

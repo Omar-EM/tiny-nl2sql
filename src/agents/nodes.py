@@ -1,6 +1,7 @@
 import re
 from typing import Literal
 
+import mlflow
 import psycopg2
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage
@@ -17,6 +18,7 @@ from .state import State
 data_dict = init_data_dictionary()
 
 
+@mlflow.trace
 def generate_sql_node(state: State) -> dict:
     """Generates SQL query from natural language using LLM"""
     print("[NODE] SQL Generator")
@@ -30,10 +32,10 @@ def generate_sql_node(state: State) -> dict:
 
     # Call LLM
     llm = init_chat_model(
-        "gemini-2.5-flash",
-        model_provider="google_genai",
+        "claude-sonnet-4-5-20250929",
+        model_provider="anthropic",
         temperature=0,
-        model_kwargs={"response_mime_type": "application/json"},
+        # model_kwargs={"response_mime_type": "application/json"},
         # model_kwargs={"response_format": "json_response"}
     )  # .with_structured_output(method="json_mode")
 
@@ -50,6 +52,7 @@ def generate_sql_node(state: State) -> dict:
     return {**response, "status": AgentStatus.RUNNING}
 
 
+@mlflow.trace
 def validate_sql_node(state: State) -> dict:
     """Validate if the SQL"""
 
@@ -72,6 +75,7 @@ def validate_sql_node(state: State) -> dict:
         return {"is_safe": True, "is_valid_syntax": is_valid_syntax}
 
 
+@mlflow.trace
 def hitl_node(state: State) -> Command:
     """Get the human approval"""
     print("[HITL NODE] got state, ", state)
@@ -89,6 +93,7 @@ def hitl_node(state: State) -> Command:
     )
 
 
+@mlflow.trace
 def execute_sql_node(state: State) -> dict:
     """Excute the generated sql query"""
     print("[NODE] execute SQL query")
@@ -107,14 +112,15 @@ def execute_sql_node(state: State) -> dict:
     return {"sql_execution_result": str(res)}
 
 
+@mlflow.trace
 def render_message_node(state: State) -> dict:
     """Get the LLM to render the final message (the result of the query, else the resulting error)"""
     print("[NODE] render message")
 
     # Call LLM
     llm = init_chat_model(
-        "gemini-2.5-flash",
-        model_provider="google_genai",
+        "claude-sonnet-4-5-20250929",
+        model_provider="anthropic",
         temperature=0,
         # model_kwargs={"response_mime_type": "application/json"},
         # model_kwargs={"response_format": "json_response"}
